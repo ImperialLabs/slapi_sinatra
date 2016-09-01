@@ -1,0 +1,151 @@
+---
+swagger: "2.0"
+info:
+  description: "Simple Lightweight API Bot Framework"
+  version: "1.0.0"
+  title: "SLAPI Bot"
+  contact:
+    name: "SLAPI Team"
+    url: "https://github.com/ImperialLabs"
+  license:
+    name: "MIT"
+    url: "https://github.com/ImperialLabs/slapi/blob/master/LICENSE"
+host: "localhost:8100"
+basePath: "/v1"
+schemes:
+- "http"
+- "https"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+paths:
+  /attachment:
+    post:
+      tags:
+      - "chat"
+      summary: "Post advanced messages, see https://api.slack.com/docs/message-attachments\
+        \ for more info"
+      operationId: "attachMessage"
+      parameters:
+      - in: "body"
+        name: "message"
+        description: "message to post"
+        required: true
+        schema:
+          $ref: "#/definitions/framework_attachment"
+      responses:
+        200:
+          description: "message response"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/framework_attachment"
+        default:
+          description: "unexpected error"
+          schema:
+            $ref: "#/definitions/error"
+  /emote:
+    post:
+      tags:
+      - "chat"
+      summary: "Emote in chatroom"
+      operationId: "emoteMessage"
+      parameters:
+      - in: "body"
+        name: "message"
+        description: "message to post"
+        required: true
+        schema:
+          $ref: "#/definitions/framework"
+      responses:
+        200:
+          description: "message response"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/framework"
+        default:
+          description: "unexpected error"
+          schema:
+            $ref: "#/definitions/error"
+  /formatted:
+    post:
+      tags:
+      - "chat"
+      summary: "Post in basic formatted text \"*bold* `code` _italic_ ~strike~\""
+      operationId: "formatMessage"
+      parameters:
+      - in: "body"
+        name: "message"
+        description: "message to post"
+        required: true
+        schema:
+          $ref: "#/definitions/framework"
+      responses:
+        200:
+          description: "message response"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/framework"
+        default:
+          description: "unexpected error"
+          schema:
+            $ref: "#/definitions/error"
+  /speak:
+    post:
+      tags:
+      - "chat"
+      summary: "Post in chatroom"
+      operationId: "postMessage"
+      parameters:
+      - in: "body"
+        name: "message"
+        description: "message to post"
+        required: true
+        schema:
+          $ref: "#/definitions/framework"
+      responses:
+        200:
+          description: "message response"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/framework"
+        default:
+          description: "unexpected error"
+          schema:
+            $ref: "#/definitions/error"
+definitions:
+  framework:
+    required:
+    - "message"
+    - "room"
+    properties:
+      message:
+        type: "string"
+      room:
+        type: "string"
+  framework_attachment:
+    required:
+    - "text"
+    properties:
+      text:
+        type: "string"
+      title:
+        type: "string"
+      pretext:
+        type: "string"
+      mrkdwn_in:
+        type: "string"
+  error:
+    required:
+    - "code"
+    - "message"
+    properties:
+      code:
+        type: "integer"
+        format: "int32"
+      message:
+        type: "string"
