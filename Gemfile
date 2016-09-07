@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 
 gem 'sinatra'
 gem 'sinatra-cross_origin'
+gem 'sinatra-contrib'
 gem 'slack-ruby-client'
 
 group :development do

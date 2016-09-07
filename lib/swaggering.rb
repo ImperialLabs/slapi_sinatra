@@ -1,40 +1,36 @@
 require 'json'
 require 'sinatra/base'
 require 'sinatra/cross_origin'
-
-class Configuration
-  attr_accessor :base_path, :api_version, :swagger_version, :format_specifier
-
-  def initialize
-    @api_version = '1.0'
-    @base_path = 'http://localhost:4567'
-    @swagger_version = '1.1'
-    @format_specifier = '.json'
-  end
-end
+require 'sinatra/config_file'
+require 'slack-ruby-client'
 
 class Swaggering < Sinatra::Base
+  register Sinatra::ConfigFile
   register Sinatra::CrossOrigin
 
+  attr_accessor :client
+
+  config_file '../config/environments.yml'
+
+  set :environment, :production
+
+  configure :production, :development, :test do
+    enable :logging
+  end
+
   @@routes = {}
-  @@configuration = Configuration.new
 
-  attr_accessor :configuration
 
-  def self.configure
-    get('/resources' + @@configuration.format_specifier) do
-      cross_origin
-      Swaggering.to_resource_listing
-    end
 
-    # for swagger.yaml
-    get('/swagger.yaml') do
-      cross_origin
-      File.read('./swagger.yaml')
-    end
+  get('/resources' + settings.format_specifier) do
+    cross_origin
+    Swaggering.to_resource_listing
+  end
 
-    @@configuration ||= Configuration.new
-    yield(@@configuration) if block_given?
+  # for swagger.yaml
+  get('/swagger.yaml') do
+    cross_origin
+    File.read('./swagger.yaml')
   end
 
   def self.add_route(method, path, swag = {}, opts = {}, &block)
@@ -66,7 +62,7 @@ class Swaggering < Sinatra::Base
         ops = []
         @@routes[resourcePath] = ops
 
-        get(resourcePath + @@configuration.format_specifier) do
+        get(resourcePath + settings.format_specifier) do
           cross_origin
           Swaggering.to_api(resourcePath)
         end
@@ -88,8 +84,8 @@ class Swaggering < Sinatra::Base
     end
 
     resource = {
-      'apiVersion' => @@configuration.api_version,
-      'swaggerVersion' => @@configuration.swagger_version,
+      'apiVersion' => settings.api_version,
+      'swaggerVersion' => settings.swagger_version,
       'apis' => apis
     }
 
@@ -149,9 +145,9 @@ class Swaggering < Sinatra::Base
     end
 
     api_listing = {
-      'apiVersion' => @@configuration.api_version,
-      'swaggerVersion' => @@configuration.swagger_version,
-      'basePath' => @@configuration.base_path,
+      'apiVersion' => settings.api_version,
+      'swaggerVersion' => settings.swagger_version,
+      'basePath' => settings.base_path,
       'resourcePath' => resourcePath,
       'apis' => apis.values,
       'models' => models
