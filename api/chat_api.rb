@@ -17,7 +17,33 @@ MyApp.add_route('POST', '/v1/attachment', 'resourcePath' => '/Chat',
                                             }
                                           ]) do
   cross_origin
-  # the guts live here
+  logger.info('attach was called')
+
+  Slack.configure do |config|
+    config.token = settings.SLACK_API_TOKEN
+    raise 'Missing SLACK_API_TOKEN configuration!' unless config.token
+  end
+
+  client = Slack::Web::Client.new
+
+  client.auth_test
+  client.chat_postMessage(
+    channel: '#test_room',
+    text: 'Hello World',
+    as_user: true,
+    attachments: [
+      {
+        fallback: "New ticket from Andrea Lee - Ticket #1943: Can't rest my password - https://groove.hq/path/to/ticket/1943",
+        pretext: "New ticket from Andrea Lee",
+        title: "Ticket #1943: Can't reset my password",
+        title_link: "https://groove.hq/path/to/ticket/1943",
+        text: "Help! I tried to reset my password but nothing happened!",
+        color: "#7CD197"
+      }
+    ].to_json
+  )
+  logger.info('attached to room')
+  status 200
 
   { 'message' => 'yes, it worked' }.to_json
 end
@@ -37,7 +63,25 @@ MyApp.add_route('POST', '/v1/emote', 'resourcePath' => '/Chat',
                                        }
                                      ]) do
   cross_origin
-  # the guts live here
+  logger.info('emote was called')
+
+  Slack.configure do |config|
+    config.token = settings.SLACK_API_TOKEN
+    raise 'Missing SLACK_API_TOKEN configuration!' unless config.token
+  end
+
+  client = Slack::Web::Client.new
+
+  client.auth_test
+  begin
+    # interestingly... this did not work with name of room, only ID
+    client.chat_meMessage(channel: 'C27MR7Y03',
+                          text: 'dances a jig')
+  rescue => detail
+    logger.info(detail.backtrace.join("\n"))
+  end
+  logger.info('posted to room')
+  status 200
 
   { 'message' => 'yes, it worked' }.to_json
 end
@@ -57,7 +101,7 @@ MyApp.add_route('POST', '/v1/formatted', 'resourcePath' => '/Chat',
                                            }
                                          ]) do
   cross_origin
-  # the guts live here
+
 
   { 'message' => 'yes, it worked' }.to_json
 end
@@ -81,14 +125,14 @@ MyApp.add_route('GET', '/v1/speak', 'resourcePath' => '/Chat',
 
   Slack.configure do |config|
     config.token = settings.SLACK_API_TOKEN
-    fail 'Missing SLACK_API_TOKEN configuration!' unless config.token
+    raise 'Missing SLACK_API_TOKEN configuration!' unless config.token
   end
 
   client = Slack::Web::Client.new
 
   #client.auth_test
   client.chat_postMessage(channel: '#test_room',
-                          text: 'Hello World everbodeeeee!',
+                          text: '*Hello* `World` ~everbodeeeee~',
                           as_user: true)
   logger.info('posted to room')
   status 200
