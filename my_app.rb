@@ -1,14 +1,18 @@
-require './lib/swaggering'
+require 'sinatra'
+require 'sinatra/base'
+require 'sinatra/config_file'
 
-# only need to extend if you want special configuration!
-class MyApp < Swaggering
+class MyApp < Sinatra::Base
   register Sinatra::ConfigFile
-  configure do |config|
-    config.api_version = '1.0.0'
+  #enable :sessions
+  config_file 'config/environments.yml'
+
+  set :environment, :production
+
+  configure :production, :development, :test do
+    enable :logging
   end
+
 end
 
-# include the api files
-Dir['./api/*.rb'].each do |file|
-  require file
-end
+require_relative 'api/init'
