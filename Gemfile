@@ -18,4 +18,5 @@ group :development do
   gem 'thin'
   gem 'rack-test'
   gem 'capybara'
+  gem 'yard'
 end

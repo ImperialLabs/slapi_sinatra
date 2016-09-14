@@ -6,18 +6,25 @@ require 'slack-ruby-client'
 
 class MyApp < Sinatra::Base
 
-  post '/v1/attachment' do
-    logger.info('attach was called')
-
+  def initialize
     Slack.configure do |config|
       config.token = settings.SLACK_API_TOKEN
       raise 'Missing SLACK_API_TOKEN configuration!' unless config.token
     end
 
-    client = Slack::Web::Client.new
+    @client = Slack::Web::Client.new
+    @client.auth_test
+  end
 
-    client.auth_test
-    client.chat_postMessage(
+
+  # Handles a POST request for '/v1/attachment'
+  # 
+  #
+  # @param request [Request] the request object
+  # @return [String] the resulting webpage
+  post '/v1/attachment' do
+    logger.info('attach was called')
+    @client.chat_postMessage(
       channel: '#test_room',
       text: 'Hello World',
       as_user: true,
@@ -39,49 +46,23 @@ class MyApp < Sinatra::Base
   end
 
   post '/v1/emote' do
-
-    #cross_origin
     logger.info('emote was called')
-
-    Slack.configure do |config|
-      config.token = settings.SLACK_API_TOKEN
-      raise 'Missing SLACK_API_TOKEN configuration!' unless config.token
-    end
-
-    client = Slack::Web::Client.new
-
-    client.auth_test
-    begin
-      # interestingly... this did not work with name of room, only ID
-      client.chat_meMessage(channel: 'C27MR7Y03',
-                            text: 'dances a jig')
-    rescue => detail
-      logger.info(detail.backtrace.join("\n"))
-    end
+    # interestingly... this did not work with name of room, only ID
+    @client.chat_meMessage(channel: 'C27MR7Y03',
+                          text: 'dances a jig')
     logger.info('posted to room')
     status 200
-
     { 'message' => 'yes, it worked' }.to_json
   end
 
+
   post '/v1/speak' do
-    #cross_origin
     logger.info('speak was called')
-
-    Slack.configure do |config|
-      config.token = settings.SLACK_API_TOKEN
-      raise 'Missing SLACK_API_TOKEN configuration!' unless config.token
-    end
-
-    client = Slack::Web::Client.new
-
-    #client.auth_test
-    client.chat_postMessage(channel: '#test_room',
+    @client.chat_postMessage(channel: params[:channel],
                             text: '*Hello* `World` ~everbodeeeee~',
                             as_user: true)
     logger.info('posted to room')
     status 200
-
     { 'message' => 'yes, it worked' }.to_json
   end
 end
